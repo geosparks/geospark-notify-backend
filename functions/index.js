@@ -43,61 +43,61 @@ exports.triggernotification = functions.https.onRequest((req, res) => {
     const geospark_token = req.body.user_id;
 
     // database.orderByChild("geofence_id").equalTo(geofence_id).on("child_added", function(snapshot) {
-    // 	console.log(snapshot.key);
+    //  console.log(snapshot.key);
     // });
-
-    var gtitle, gmessage;
-    database
-      .orderByChild("geofence_id")
-      .equalTo(geofence_id)
-      .on(
-        "value",
-        snapshot => {
-          snapshot.forEach(geofence => {
-            console.log(geofence.val().gtitle);
-            gtitle = geofence.val().gtitle;
-            gmessage = geofence.val().gmessage;
-
-            udatabase
-              .orderByChild("geospark_token")
-              .equalTo(geospark_token)
-              .on(
-                "value",
-                snapshot => {
-                  snapshot.forEach(user => {
-                    console.log(user.val().device_token);
-                    var message = {
-                      notification: {
-                        title: gtitle,
-                        body: gmessage
-                      },
-                      token: user.val().device_token
-                    };
-                    admin
-                      .messaging()
-                      .send(message)
-                      .then(response => {
-                        console.log("Successfully sent message:", response);
-                      })
-                      .catch(error => {
-                        console.log("Error sending message:", error);
-                      });
-                  });
-                },
-                error => {
-                  res.status(error.code).json({
-                    message: `Something went wrong. ${error.message}`
-                  });
-                }
-              );
-          });
-        },
-        error => {
-          res.status(error.code).json({
-            message: `Something went wrong. ${error.message}`
-          });
-        }
-      );
+    if (event_type == "entry") {
+      var gtitle, gmessage;
+      database
+        .orderByChild("geofence_id")
+        .equalTo(geofence_id)
+        .on(
+          "value",
+          snapshot => {
+            snapshot.forEach(geofence => {
+              console.log(geofence.val().gtitle);
+              gtitle = geofence.val().gtitle;
+              gmessage = geofence.val().gmessage;
+              udatabase
+                .orderByChild("geospark_token")
+                .equalTo(geospark_token)
+                .on(
+                  "value",
+                  snapshot => {
+                    snapshot.forEach(user => {
+                      console.log(user.val().device_token);
+                      var message = {
+                        notification: {
+                          title: gtitle,
+                          body: gmessage
+                        },
+                        token: user.val().device_token
+                      };
+                      admin
+                        .messaging()
+                        .send(message)
+                        .then(response => {
+                          console.log("Successfully sent message:", response);
+                        })
+                        .catch(error => {
+                          console.log("Error sending message:", error);
+                        });
+                    });
+                  },
+                  error => {
+                    res.status(error.code).json({
+                      message: `Something went wrong. ${error.message}`
+                    });
+                  }
+                );
+            });
+          },
+          error => {
+            res.status(error.code).json({
+              message: `Something went wrong. ${error.message}`
+            });
+          }
+        );
+    }
 
     res.status(200).json({
       message: "Notification triggered"
